@@ -44,9 +44,7 @@ def check_internet():
 def check_update():
     try:
         url = '/'.join([REPO_URL, 'assets', 'info', 'release.txt'])
-        print(url)
         info = json.loads(download_url(url))
-        print(info, versioninfo["Version"], info["Version"])
         return versioninfo["Version"] != info["Version"] 
     except Exception as e:
         print(e)
@@ -62,9 +60,9 @@ def update_file_handler(*args):
 
 assets_initialize()
 versioninfo = json.load(open(find_data_file("assets","info","release.txt"),"r"))
-print(versioninfo)
 REPO_URL = "https://raw.github.com/dmitchelldm74/Yahtzee/master"
 INTERNET = check_internet()
+run_temp_module(find_data_file("assets", "core", "main.py"))
 if INTERNET:
     UPDATE = check_update()
     if UPDATE:
@@ -72,4 +70,4 @@ if INTERNET:
         for f in [("assets", "core", "main.py"), ("assets", "info", "release.txt")]:
             thread = Thread(target=update_file_handler, args=f)
             thread.start()
-run_temp_module(find_data_file("assets", "core", "main.py"))
+root.mainloop()
