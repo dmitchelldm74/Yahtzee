@@ -1,8 +1,10 @@
 import random, math, json, sys, os, datetime, http.client, mimetypes, shutil, urllib.request, urllib.parse, socket
+from threading import Thread
 import tkinter as tk
+from tkinter import messagebox
 
 def download_url(url):
-    return urllib.request.urlopen(url).read()
+    return urllib.request.urlopen(url).read().decode('utf-8')
 
 def find_data_file(*args, datapath=False):
     if hasattr(sys, '_MEIPASS'):
@@ -41,25 +43,33 @@ def check_internet():
 
 def check_update():
     try:
-        info = KV(download_url(os.path.join(REPO_URL, 'assets', 'info', 'release.txt')))
-        print(info)
-        return versioninfo["version"] != info["version"] 
-    except:
+        url = '/'.join([REPO_URL, 'assets', 'info', 'release.txt'])
+        print(url)
+        info = json.loads(download_url(url))
+        print(info, versioninfo["Version"], info["Version"])
+        return versioninfo["Version"] != info["Version"] 
+    except Exception as e:
+        print(e)
         print('Update Checker Error')
     return False
     
 def run_temp_module(path):
     script = os.path.basename(path)
     globals()[script.rsplit('.')[0]] = eval(compile(open(path,"r").read(), script, 'exec'), globals())
+    
+def update_file_handler(*args):
+    open(find_data_file(*args), "w").write(download_url("/".join((REPO_URL,)+args)))
 
 assets_initialize()
-run_temp_module(find_data_file("assets","info","releasekvreader.py"))
-REPO_URL = "https://github.com/dmitchelldm74/Yahtzee/master"
+versioninfo = json.load(open(find_data_file("assets","info","release.txt"),"r"))
+print(versioninfo)
+REPO_URL = "https://raw.github.com/dmitchelldm74/Yahtzee/master"
 INTERNET = check_internet()
 if INTERNET:
     UPDATE = check_update()
     if UPDATE:
-        tkinter.messagebox.showinfo("Installing Update", "Click ok to install.")
-versioninfo = KV(open(find_data_file("assets","info","release.txt"),"r").read())
-
+        messagebox.showinfo("Update Available", "Click ok to install.")
+        for f in [("assets", "core", "main.py"), ("assets", "info", "release.txt")]:
+            thread = Thread(target=update_file_handler, args=f)
+            thread.start()
 run_temp_module(find_data_file("assets", "core", "main.py"))
