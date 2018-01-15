@@ -45,7 +45,8 @@ def check_update():
     try:
         url = '/'.join([REPO_URL, 'assets', 'info', 'release.txt'])
         info = json.loads(download_url(url))
-        return versioninfo["Version"] != info["Version"] 
+        if info['Stable'] == 'True':
+            return versioninfo["Version"] != info["Version"]
     except Exception as e:
         print(e)
         print('Update Checker Error')
@@ -57,6 +58,17 @@ def run_temp_module(path):
     
 def update_file_handler(*args):
     open(find_data_file(*args), "w").write(download_url("/".join((REPO_URL,)+args)))
+    
+def update_handler():
+    changes = json.load(download_url('/'.join([REPO_URL, 'changes.txt'])))
+    for f in changes+[("assets", "info", "release.txt")]:
+        try:
+            if isinstance(f, list):
+                update_file_handler(*f)
+            elif f == "exe":
+                open(os.path.join(os.getcwd(), "Yahtzee.exe"), "wb").write(urllib.request.urlopen('/'.join([REPO_URL, 'dist', "Yahtzee.exe"])).read())
+        except:
+            pass
 
 assets_initialize()
 versioninfo = json.load(open(find_data_file("assets","info","release.txt"),"r"))
@@ -67,7 +79,6 @@ if INTERNET:
     UPDATE = check_update()
     if UPDATE:
         messagebox.showinfo("Update Available", "Click ok to install.")
-        for f in [("assets", "core", "main.py"), ("assets", "info", "release.txt")]:
-            thread = Thread(target=update_file_handler, args=f)
-            thread.start()
+        thread = Thread(target=update_handler, args=())
+        thread.start()
 root.mainloop()

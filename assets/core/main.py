@@ -142,6 +142,11 @@ class YahtzeeGame(tk.Frame):
         self._ltlbl.config(text=self.lower_total)
         self._gtlbl.config(text=gt)
         return gt
+        
+    def check_done(self):
+        if len(self.score["upper"].keys()) + len(self.score["lower"].keys()) == 13:
+            messagebox.showinfo("Game Over", "Score: %d" % self.draw_score_lbls())
+            self.reset()
                 
     def add_score(self,i,lbl,lbl2):
         dice = [self.dice_cache[x] if n == None else n for x,n in enumerate(self.dice_save)]
@@ -183,6 +188,7 @@ class YahtzeeGame(tk.Frame):
             self.reset_roll()
             self._rclbl.config(text="Rolls Left: %d"%self.roll_count)
             self._cvs.delete(tk.ALL)
+            self.check_done()
         self.draw_score_lbls()
         
     def reset_roll(self):
