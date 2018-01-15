@@ -1,4 +1,4 @@
-import random, math, json, sys, os, datetime, http.client, mimetypes, shutil, urllib.request, urllib.parse, socket
+import random, math, json, sys, os, time, datetime, http.client, mimetypes, shutil, urllib.request, urllib.parse, socket
 from threading import Thread
 import tkinter as tk
 from tkinter import messagebox
@@ -60,20 +60,29 @@ def update_file_handler(*args):
     open(find_data_file(*args), "w").write(download_url("/".join((REPO_URL,)+args)))
     
 def update_handler():
-    changes = json.load(download_url('/'.join([REPO_URL, 'changes.txt'])))
-    for f in changes+[("assets", "info", "release.txt")]:
+    changes = json.loads(download_url('/'.join([REPO_URL, 'changes.txt'])))
+    d = len(changes)+1
+    dismiss = None
+    for i,f in enumerate(changes+[("assets", "info", "release.txt")]):
         try:
             if isinstance(f, list):
                 update_file_handler(*f)
             elif f == "exe":
                 open(os.path.join(os.getcwd(), "Yahtzee.exe"), "wb").write(urllib.request.urlopen('/'.join([REPO_URL, 'dist', "Yahtzee.exe"])).read())
-        except:
-            pass
+        except Exception as e:
+            print(e)
+        if dismiss:
+            dismiss_msg(dismiss)
+        p = int(f/d)
+        dismiss = alertbox("Downloading Update", str(p*100)+"% Done")
+        tk.Label(dismiss, text="", width=p*10, bg="green").grid(row=dismiss._rowm,column=0)
+    globals()['UDAT_COMPLETE'] = True
 
 assets_initialize()
 versioninfo = json.load(open(find_data_file("assets","info","release.txt"),"r"))
 REPO_URL = "https://raw.github.com/dmitchelldm74/Yahtzee/master"
 INTERNET = check_internet()
+UDAT_COMPLETE = True
 run_temp_module(find_data_file("assets", "core", "main.py"))
 if INTERNET:
     UPDATE = check_update()
@@ -81,4 +90,8 @@ if INTERNET:
         messagebox.showinfo("Update Available", "Click ok to install.")
         thread = Thread(target=update_handler, args=())
         thread.start()
+        UDAT_COMPLETE = False
 root.mainloop()
+if not UDAT_COMPLETE:
+    while True:
+        time.sleep(40)

@@ -55,6 +55,7 @@ class YahtzeeGame(tk.Frame):
         self.upper_total = 0
         self.lower_total = 0
         self.score = {"upper":{},"lower":{}}
+        self.turns = 0
         self.create_elements()
         
     def create_elements(self):
@@ -144,8 +145,8 @@ class YahtzeeGame(tk.Frame):
         return gt
         
     def check_done(self):
-        if len(self.score["upper"].keys()) + len(self.score["lower"].keys()) == 13:
-            messagebox.showinfo("Game Over", "Score: %d" % self.draw_score_lbls())
+        if self.turns == 13:
+            messagebox.showinfo("Game Over!", "Score: %d" % self.draw_score_lbls())
             self.reset()
                 
     def add_score(self,i,lbl,lbl2):
@@ -188,6 +189,7 @@ class YahtzeeGame(tk.Frame):
             self.reset_roll()
             self._rclbl.config(text="Rolls Left: %d"%self.roll_count)
             self._cvs.delete(tk.ALL)
+            self.turns += 1
             self.check_done()
         self.draw_score_lbls()
         
