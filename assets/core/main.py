@@ -190,7 +190,7 @@ class YahtzeeGame(tk.Frame):
             self._rclbl.config(text="Rolls Left: %d"%self.roll_count)
             self._cvs.delete(tk.ALL)
             self.turns += 1
-            self.check_done()
+            #self.check_done()
         self.draw_score_lbls()
         
     def reset_roll(self):
@@ -267,6 +267,10 @@ def sign_in(box, ety, ety2):
         gamedata["uname"] = i
         gamedata["pass"] = i2 
         gamedata.save()
+    buttons['Login'].destroy()
+    btn = tk.Button(btnbar, text="Logout", command=gamedata.logout)
+    btn.grid(row=1,column=3)
+    buttons['Logout'] = btn
     box.destroy()
     
 def view_high_scores():
@@ -381,13 +385,18 @@ lbl = tk.Label(root, text="YAHTZEE", font="Arial 50 italic bold", fg="red")
 game = YahtzeeGame(root)
 gamedata.game = game
 btnbar = tk.Frame(root)
+buttons = {"New Game": game.reset}
 if INTERNET:
-    buttons = {"New Game": game.reset, "#High Scores":view_high_scores, "Brag Score":gamedata.push, "#Hide Scores":gamedata.hide_scores, "Login":lambda: signinbox(root), "Logout":gamedata.logout}
-else:
-    buttons = {"New Game": game.reset}
+    buttons.update({"#High Scores":view_high_scores, "Brag Score":gamedata.push, "#Hide Scores":gamedata.hide_scores})
+    if gamedata.no_credentials:
+        buttons["Login"] = lambda: signinbox(root)
+    else:
+        buttons["Logout"] = gamedata.logout
 for x,b in enumerate(buttons):
     if not b.startswith("#"):
-        tk.Button(btnbar, text=b, command=buttons[b]).grid(row=1,column=x)
+        btn = tk.Button(btnbar, text=b, command=buttons[b])
+        btn.grid(row=1,column=x)
+        buttons[b] = btn
 btnbar.grid(row=row.get(),column=1)
 btn = tk.Button(root, text="Roll Dice", command=game.show_roll, width=25, height=2)
 lbl.grid(row=row.get(), column=1, columnspan=3)

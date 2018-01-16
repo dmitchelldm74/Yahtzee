@@ -62,20 +62,20 @@ def update_file_handler(*args):
 def update_handler():
     changes = json.loads(download_url('/'.join([REPO_URL, 'changes.txt'])))
     d = len(changes)+1
-    dismiss = None
+    dismiss = alertbox(root, "Downloading Update...")
+    lbl = tk.Label(dismiss, text="", width=1, bg="green", fg="white", relief="groove")
+    lbl.grid(row=dismiss._rowm.get(),column=0,columnspan=6)
     for i,f in enumerate(changes+[("assets", "info", "release.txt")]):
         try:
-            if isinstance(f, list):
+            if isinstance(f, (list, tuple)):
                 update_file_handler(*f)
             elif f == "exe":
                 open(os.path.join(os.getcwd(), "Yahtzee.exe"), "wb").write(urllib.request.urlopen('/'.join([REPO_URL, 'dist', "Yahtzee.exe"])).read())
         except Exception as e:
             print(e)
-        if dismiss:
-            dismiss_msg(dismiss)
-        p = int(f/d)
-        dismiss = alertbox("Downloading Update", str(p*100)+"% Done")
-        tk.Label(dismiss, text="", width=p*10, bg="green").grid(row=dismiss._rowm,column=0)
+        p = i/d
+        lbl.config(text=str(int(p*100))+"% Done", width=int(p*50))
+    lbl.config(text="100% Done", width=50)
     globals()['UDAT_COMPLETE'] = True
 
 assets_initialize()
