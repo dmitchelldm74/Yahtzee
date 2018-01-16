@@ -76,7 +76,6 @@ def update_handler():
         p = i/d
         lbl.config(text=str(int(p*100))+"% Done", width=int(p*50))
     lbl.config(text="100% Done", width=50)
-print("hello")
 assets_initialize()
 versioninfo = json.load(open(find_data_file("assets","info","release.txt"),"r"))
 REPO_URL = "https://raw.github.com/dmitchelldm74/Yahtzee/master"
