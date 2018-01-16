@@ -267,10 +267,6 @@ def sign_in(box, ety, ety2):
         gamedata["uname"] = i
         gamedata["pass"] = i2 
         gamedata.save()
-    buttons['Login'].destroy()
-    btn = tk.Button(btnbar, text="Logout", command=gamedata.logout)
-    btn.grid(row=1,column=3)
-    buttons['Logout'] = btn
     box.destroy()
     
 def view_high_scores():

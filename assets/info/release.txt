@@ -1,1 +1,1 @@
-{"Version":"0.0.3", "Author":"Daniel Mitchell", "Stable":"True"}
+{"Version":"0.0.4", "Author":"Daniel Mitchell", "Stable":"True"}
