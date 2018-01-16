@@ -190,7 +190,7 @@ class YahtzeeGame(tk.Frame):
             self._rclbl.config(text="Rolls Left: %d"%self.roll_count)
             self._cvs.delete(tk.ALL)
             self.turns += 1
-            #self.check_done()
+            self.check_done()
         self.draw_score_lbls()
         
     def reset_roll(self):
