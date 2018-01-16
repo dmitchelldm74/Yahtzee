@@ -238,21 +238,22 @@ def dismiss_msg(frame):
     p.update()
     
 def alertbox(parent, text):
-    aframe = tk.Frame(parent, relief="ridge", borderwidth=2)
+    aframe = tk.Frame(parent, relief="ridge", borderwidth=2, width=100)
     aframe._rowm = Row()
     lbl = tk.Label(aframe, text=text, font="default 18 bold")
     lbl.grid(row=aframe._rowm.get(), column=0, columnspan=3)
     lbl2 = tk.Label(aframe, text="Dismiss", font="default 14 underline", fg="blue")
     lbl2.grid(row=aframe._rowm.n, column=5, padx=10)
     lbl2.bind('<Button-1>', lambda evt,aframe=aframe: dismiss_msg(aframe))
-    aframe.grid(row=0,column=0,columnspan=100) #parent._rowm.get()
+    #aframe.grid(row=0,column=0,columnspan=100) #parent._rowm.get()
+    aframe.place(x=0, y=0)
     return aframe
     
 def yesnobox(parent, title, text, on_yes=lambda:None):
     box = alertbox(parent, title)
     tk.Label(box, text=text).grid(row=box._rowm.get(), column=0, columnspan=6, rowspan=3)
-    tk.Button(box, text="Yes", command=on_yes).grid(row=box._rowm.get(), column=1, columnspan=2)
-    tk.Button(box, text="No", command=lambda box=box:dismiss_msg(box)).grid(row=box._rowm.n, column=5, columnspan=2)
+    tk.Button(box, text="Yes", width=25, command=lambda on_yes=on_yes,box=box:(on_yes(),dismiss_msg(box))).grid(row=box._rowm.get()+4, column=0, columnspan=2)
+    tk.Button(box, text="No", width=25, command=lambda box=box:dismiss_msg(box)).grid(row=box._rowm.n+4, column=4, columnspan=2)
     
 def signinbox(parent):
     box = alertbox(parent, "Sign-In To Droplet")
@@ -379,10 +380,6 @@ f = find_data_file("assets", "data")
 if not os.path.exists(f):
     os.makedirs(f)
 gamedata = GDAT(find_data_file("assets", "data", "gamedata.json", datapath=True))
-# FUTURE: TO FAR, Droplet not stable
-if not os.path.exists(gamedata.filename) or gamedata.no_credentials:
-    signinbox(root)
-    row.get()
 lbl = tk.Label(root, text="YAHTZEE", font="Arial 50 italic bold", fg="red")
 game = YahtzeeGame(root)
 gamedata.game = game
@@ -399,6 +396,10 @@ for x,b in enumerate(buttons):
         btn = tk.Button(btnbar, text=b, command=buttons[b])
         btn.grid(row=1,column=x)
         buttons[b] = btn
+# FUTURE: TO FAR, Droplet not stable
+if not os.path.exists(gamedata.filename) or gamedata.no_credentials:
+    signinbox(root)
+    row.get()
 btnbar.grid(row=row.get(),column=1)
 btn = tk.Button(root, text="Roll Dice", command=game.show_roll, width=25, height=2)
 lbl.grid(row=row.get(), column=1, columnspan=3)

@@ -76,20 +76,14 @@ def update_handler():
         p = i/d
         lbl.config(text=str(int(p*100))+"% Done", width=int(p*50))
     lbl.config(text="100% Done", width=50)
-    globals()['UDAT_COMPLETE'] = True
-
+print("hello")
 assets_initialize()
 versioninfo = json.load(open(find_data_file("assets","info","release.txt"),"r"))
 REPO_URL = "https://raw.github.com/dmitchelldm74/Yahtzee/master"
 INTERNET = check_internet()
-UDAT_COMPLETE = True
 run_temp_module(find_data_file("assets", "core", "main.py"))
 if INTERNET:
     UPDATE = check_update()
     if UPDATE:
-        yesnobox(root, "Update Available", "Install Update", Thread(target=update_handler, args=()).start)
-        UDAT_COMPLETE = False
+        yesnobox(root, "Update Available", "Install Update?", Thread(target=update_handler, args=()).start)
 root.mainloop()
-if not UDAT_COMPLETE:
-    while True:
-        time.sleep(40)
