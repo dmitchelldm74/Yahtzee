@@ -248,6 +248,12 @@ def alertbox(parent, text):
     aframe.grid(row=0,column=0,columnspan=100) #parent._rowm.get()
     return aframe
     
+def yesnobox(parent, title, text, on_yes=lambda:None):
+    box = alertbox(parent, title)
+    tk.Label(box, text=text).grid(row=box._rowm.get(), column=0, columnspan=6, rowspan=3)
+    tk.Button(box, text="Yes", command=on_yes).grid(row=box._rowm.get(), column=1, columnspan=2)
+    tk.Button(box, text="No", command=lambda box=box:dismiss_msg(box)).grid(row=box._rowm.n, column=5, columnspan=2)
+    
 def signinbox(parent):
     box = alertbox(parent, "Sign-In To Droplet")
     tk.Label(box, text="Username: ").grid(row=box._rowm.get(),column=0)

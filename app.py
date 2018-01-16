@@ -87,9 +87,7 @@ run_temp_module(find_data_file("assets", "core", "main.py"))
 if INTERNET:
     UPDATE = check_update()
     if UPDATE:
-        messagebox.showinfo("Update Available", "Click ok to install.")
-        thread = Thread(target=update_handler, args=())
-        thread.start()
+        yesnobox(root, "Update Available", "Install Update", Thread(target=update_handler, args=()).start)
         UDAT_COMPLETE = False
 root.mainloop()
 if not UDAT_COMPLETE:
