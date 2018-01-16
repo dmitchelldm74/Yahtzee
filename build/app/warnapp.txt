@@ -11,7 +11,7 @@ missing module named 'java.lang' - imported by platform, C:\Users\Admin\Document
 missing module named vms_lib - imported by platform, C:\Users\Admin\Documents\yahtzee\app.py
 missing module named termios - imported by tty, getpass, C:\Users\Admin\Documents\yahtzee\app.py
 missing module named grp - imported by shutil, tarfile, C:\Users\Admin\Documents\yahtzee\app.py
+missing module named 'org.python' - imported by copy, C:\Users\Admin\Documents\yahtzee\app.py, xml.sax
 missing module named pwd - imported by posixpath, shutil, tarfile, http.server, webbrowser, netrc, getpass, C:\Users\Admin\Documents\yahtzee\app.py
 missing module named _dummy_threading - imported by dummy_threading, C:\Users\Admin\Documents\yahtzee\app.py
-missing module named 'org.python' - imported by copy, C:\Users\Admin\Documents\yahtzee\app.py, xml.sax
 missing module named _scproxy - imported by urllib.request
