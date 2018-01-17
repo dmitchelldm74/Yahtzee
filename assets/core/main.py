@@ -17,7 +17,7 @@ def post(url, fields):
     req = urllib.request.Request(url, data=fields)
     try:
         resp = urllib.request.urlopen(req).read()
-        return resp
+        return resp.decode('utf-8')
     except urllib.error.HTTPError as e:
         print("401 Error", e)
         return "File Error!"
@@ -146,8 +146,7 @@ class YahtzeeGame(tk.Frame):
         
     def check_done(self):
         if self.turns == 13:
-            messagebox.showinfo("Game Over!", "Score: %d" % self.draw_score_lbls())
-            self.reset()
+            alertbox(root, "Game Over!\nScore: %d" % self.draw_score_lbls())
                 
     def add_score(self,i,lbl,lbl2):
         dice = [self.dice_cache[x] if n == None else n for x,n in enumerate(self.dice_save)]
@@ -236,17 +235,19 @@ def dismiss_msg(frame):
     p = frame.master
     frame.destroy()
     p.update()
+    p.config(height=sum([c.winfo_height() for c in p.winfo_children()])+5)
     
 def alertbox(parent, text):
-    aframe = tk.Frame(parent, relief="ridge", borderwidth=2, width=100)
+    aframe = tk.Frame(alertframe, relief="ridge", borderwidth=2, width=100)
     aframe._rowm = Row()
     lbl = tk.Label(aframe, text=text, font="default 18 bold")
     lbl.grid(row=aframe._rowm.get(), column=0, columnspan=3)
     lbl2 = tk.Label(aframe, text="Dismiss", font="default 14 underline", fg="blue")
     lbl2.grid(row=aframe._rowm.n, column=5, padx=10)
     lbl2.bind('<Button-1>', lambda evt,aframe=aframe: dismiss_msg(aframe))
-    #aframe.grid(row=0,column=0,columnspan=100) #parent._rowm.get()
-    aframe.place(x=0, y=0)
+    aframe.grid(row=alertframe._rowm.get(),column=0,columnspan=100,sticky="WE")
+    #aframe.place(x=0, y=0)
+    parent.config(height=sum([c.winfo_height() for c in parent.winfo_children()])+5)
     return aframe
     
 def yesnobox(parent, title, text, on_yes=lambda:None):
@@ -274,48 +275,100 @@ def sign_in(box, ety, ety2):
         gamedata["uname"] = i
         gamedata["pass"] = i2 
         gamedata.save()
-    box.destroy()
+    dismiss_msg(box)
     
 def view_high_scores():
-    global gamedata
-    gamedata.comps = ["y236"]
+    global gamedata, imgicon
+    gamedata.comps = gamedata.following()
     win = tk.Toplevel()
+    win.geometry("350x300")
+    win.tk.call('wm', 'iconphoto', win._w, imgicon)
     row = Row()
     win._rowm = row
     if gamedata.no_credentials:
         signinbox(win)
-    tk.Label(win, text="High Scores For Friend: ").grid(row=row.get(),column=0)
+    tk.Label(win, text="Find Scores: ").grid(row=row.get(),column=0)
     ety = tk.Entry(win)
-    ety.grid(row=row.n, column=0)
+    ety.grid(row=row.n, column=1)
     frame = tk.Frame(win)
-    tk.Button(win, text="GO", command=lambda ety=ety,frame=frame: comp_add(ety.get(),frame)).grid(row=row.n, column=2)
-    frame.grid(row=row.get(), column=0, columnspan=6)
-    tk.Label(frame, text="Rank", relief="groove").grid(row=row.get(), column=0)
-    tk.Label(frame, text="Name", relief="groove").grid(row=row.n, column=1)
-    tk.Label(frame, text="Score", relief="groove").grid(row=row.n, column=2)
-    tk.Label(frame, text="Date", relief="groove").grid(row=row.n, column=3)
-    update_high_score_frame(frame)
+    tk.Button(win, text="Go", command=lambda ety=ety,frame=frame: comp_add(ety.get(),frame)).grid(row=row.n, column=2)
+    tk.Button(win, text="MyScores", command=lambda user=gamedata.get("uname"),frame=frame:comp_add(user,frame)).grid(row=row.n, column=3)
+    frame.grid(row=row.get(), column=0, columnspan=7)
+    update_high_score(frame)
     win.mainloop()
     
 def comp_add(user, frame):
     global gamedata
-    gamedata.comps.append(user)
-    update_high_score_frame(frame)
+    #if user not in gamedata.comps:
+    gamedata.comps = [user]
+    #gamedata.comps.append(user)
+    update_high_score(frame, single=True)
+        
+def update_high_score(frame, single=False):
+    Thread(target=update_high_score_frame, args=(frame,), kwargs={'single':single}).start()
     
-def update_high_score_frame(frame):
+def view_game_info(info):
+    if isinstance(info, dict):
+        win = tk.Toplevel()
+        win.geometry("196x380")
+        win.tk.call('wm', 'iconphoto', win._w, imgicon)
+        row = Row()
+        lbl = tk.Label(win, text="Upper Section", width=27, relief="groove")
+        lbl.grid(row=row.get(),column=1,columnspan=2)
+        for x,n in enumerate(["Ones", "Twos", "Threes", "Fours", "Fives", "Sixes", "3 of a kind", "4 of a kind", "Full house", "Sm straight", "Lg straight", "YAHTZEE", "Chance"], 1):
+            r = row.get()
+            lbl = tk.Label(win, text=n, width=10, relief="groove")
+            x = str(x)
+            section = 'upper' if x in info['upper'] else 'lower'
+            lbl2 = tk.Label(win, text=str(info[section].get(x,0)), width=10, relief="groove")
+            lbl.grid(row=r, column=1)
+            lbl2.grid(row=r, column=2)
+            if x == '6':
+                lbl = tk.Label(win, text="Lower Section", width=27, relief="groove")
+                lbl.grid(row=row.get(),column=1,columnspan=2)
+        gt = 0
+        info.update({'grand':{}})
+        for n in info:
+            r = row.get()
+            lbl = tk.Label(win, text="%s Total"%n.title(), width=10, relief="groove")
+            y = sum(info[n].values())
+            gt += y
+            if n == 'grand':
+                y = gt
+            lbl2 = tk.Label(win, text=str(y), width=10, relief="groove")
+            lbl.grid(row=r, column=1)
+            lbl2.grid(row=r, column=2)
+        win.mainloop()       
+    
+def update_high_score_frame(frame, single=False):
     global gamedata
     try:
-        chart = gamedata.pull()
+        chart = [] if single else gamedata.pull()
         for c in gamedata.comps:
             chart += gamedata.pull(owner=c)
         chart.sort(key=lambda x: x[1], reverse=True)
-        row = frame.master._rowm
+        chart = chart[:10]
+        row = Row()
+        for widget in frame.winfo_children():
+            widget.destroy()
+        tk.Label(frame, text="Rank", relief="groove").grid(row=row.get(), column=0, sticky="WE")
+        tk.Label(frame, text="Name", relief="groove").grid(row=row.n, column=1, sticky="WE")
+        tk.Label(frame, text="Score", relief="groove").grid(row=row.n, column=2, sticky="WE")
+        tk.Label(frame, text="Date", relief="groove").grid(row=row.n, column=3, sticky="WE")
+        tk.Label(frame, text="\t", relief="groove").grid(row=row.n, column=4, sticky="WE")
         for r,c in enumerate(chart,1):
-            tk.Label(frame, text=r).grid(row=row.get(),column=0)
-            tk.Label(frame, text=c[0]).grid(row=row.n,column=1)
-            tk.Label(frame, text=c[1]).grid(row=row.n,column=2)
-            tk.Label(frame, text=c[2]).grid(row=row.n,column=3)
-    except:
+            tk.Label(frame, text=r).grid(row=row.get(),column=0,sticky="WE")
+            link = tk.Label(frame, text=c[0], fg="blue", font="default 12 underline")
+            href = os.path.join("http://%s/user"%(gamedata.domain), c[0])
+            link.bind('<Button-1>', lambda evt, href=href: wb.open(href))
+            link.grid(row=row.n,column=1,sticky="WE")
+            tk.Label(frame, text=c[1]).grid(row=row.n,column=2,sticky="WE")
+            tk.Label(frame, text=c[2]).grid(row=row.n,column=3,sticky="WE")
+            vlink = tk.Label(frame, text="View Game", fg="blue", font="default 12 underline")
+            vlink.bind('<Button-1>', lambda evt,info=c[-1]: view_game_info(info))
+            vlink.grid(row=row.n,column=4,sticky="WE")
+    except Exception as e:
+        print(e)
         frame.master.destroy()
         alertbox(root, "Error Checking Scores!")
         
@@ -324,6 +377,7 @@ class GDAT(dict):
         dict.__init__(self)
         self.filename = filename
         self.game = None
+        self.domain = '104.236.235.19' #'localhost' 
         
     def save(self):
         try:
@@ -348,8 +402,8 @@ class GDAT(dict):
     def pull(self, owner=None, fname="HighScores.ytz"):
         if not self.no_credentials:
             #print(self.get("uname") if owner == None else owner, 'o', fname)
-            resp = "[]"
-            #resp = post('http://localhost/cli/uploads', [("username", self.get("uname")), ("password", self.get("pass")), ("filename", fname), ("owner", self.get("uname") if owner == None else owner)])
+            #resp = "[]"
+            resp = post('http://%s/cli/uploads'%(self.domain), [("username", self.get("uname")), ("password", self.get("pass")), ("filename", fname), ("owner", self.get("uname") if owner == None else owner)])
             try:
                 return json.loads(resp)
             except:
@@ -358,15 +412,28 @@ class GDAT(dict):
         
     def push(self, fname="HighScores.ytz"):
         if not self.no_credentials:
-            #data = json.dumps(self.pull()+[[self.get("uname"), self.game.draw_score_lbls(), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')]])
+            current = self.pull()
+            score = self.game.draw_score_lbls()
+            if len(current) > 10 and current[-1][1] == score:
+                current.pop(-1)
+            data = json.dumps(current+[[self.get("uname"), score, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), self.game.score]])
             alertbox(root, "Score Bragged!")
-            post('http://104.236.235.19/easy_send893b3', [("username", self.get("uname")), ("password", self.get("pass")), ('text', '%s is a BRAGGER! \n Yahtzee score: %d'%(self.get("uname"), self.game.draw_score_lbls()))])
-            #post_multipart('104.236.235.19/easy_send893b3', '/upload', [("username", self.get("uname")), ("password", self.get("pass")), ('alert', 'false')], [("file", fname, str(data).encode('utf-8'))])
+            post('http://localhost/easy_send893b3', [("username", self.get("uname")), ("password", self.get("pass")), ('text', '%s is a BRAGGER! \n Yahtzee score: %d'%(self.get("uname"), score))])
+            post_multipart(self.domain, '/upload', [("username", self.get("uname")), ("password", self.get("pass")), ('alert', 'false')], [("file", fname, str(data).encode('utf-8'))])
            
     def hide_scores(self, fname="HighScores.ytz"):
         if not self.no_credentials:
-            post_multipart('104.236.235.19', '/upload', [("username", self.get("uname")), ("password", self.get("pass")), ('alert', 'false')], [("file", fname, "[]".encode('utf-8'))])
-           
+            post_multipart(self.domain, '/upload', [("username", self.get("uname")), ("password", self.get("pass")), ('alert', 'false')], [("file", fname, "[]".encode('utf-8'))])
+
+    def following(self):
+        if not self.no_credentials:
+            resp = post('http://%s/cli/uploads'%(self.domain), [("username", self.get("uname")), ("password", self.get("pass")), ("command", "FOLLOWING")])
+            try:
+                return json.loads(resp)
+            except:
+                pass
+        return []
+
     @property
     def no_credentials(self):
         self.load()
@@ -380,13 +447,16 @@ f = find_data_file("assets", "data")
 if not os.path.exists(f):
     os.makedirs(f)
 gamedata = GDAT(find_data_file("assets", "data", "gamedata.json", datapath=True))
+alertframe = tk.Frame(root, width=100)
+alertframe._rowm = Row()
+alertframe.grid(row=row.get(), column=0, columnspan=100)
 lbl = tk.Label(root, text="YAHTZEE", font="Arial 50 italic bold", fg="red")
 game = YahtzeeGame(root)
 gamedata.game = game
 btnbar = tk.Frame(root)
 buttons = {"New Game": game.reset}
 if INTERNET:
-    buttons.update({"#High Scores":view_high_scores, "Brag Score":gamedata.push, "#Hide Scores":gamedata.hide_scores})
+    buttons.update({"High Scores":view_high_scores, "Brag Score":gamedata.push, "Hide Scores":gamedata.hide_scores})
     if gamedata.no_credentials:
         buttons["Login"] = lambda: signinbox(root)
     else:

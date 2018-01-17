@@ -1,5 +1,6 @@
 import random, math, json, sys, os, time, datetime, http.client, mimetypes, shutil, urllib.request, urllib.parse, socket
 from threading import Thread
+import webbrowser as wb
 import tkinter as tk
 from tkinter import messagebox
 
