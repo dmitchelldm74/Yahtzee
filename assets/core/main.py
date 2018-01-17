@@ -418,7 +418,7 @@ class GDAT(dict):
                 current.pop(-1)
             data = json.dumps(current+[[self.get("uname"), score, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), self.game.score]])
             alertbox(root, "Score Bragged!")
-            post('http://localhost/easy_send893b3', [("username", self.get("uname")), ("password", self.get("pass")), ('text', '%s is a BRAGGER! \n Yahtzee score: %d'%(self.get("uname"), score))])
+            post('http://%s/easy_send893b3'%(self.domain), [("username", self.get("uname")), ("password", self.get("pass")), ('text', '%s is a BRAGGER! \n Yahtzee score: %d'%(self.get("uname"), score))])
             post_multipart(self.domain, '/upload', [("username", self.get("uname")), ("password", self.get("pass")), ('alert', 'false')], [("file", fname, str(data).encode('utf-8'))])
            
     def hide_scores(self, fname="HighScores.ytz"):
